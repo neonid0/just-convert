@@ -57,6 +57,13 @@ pub fn capabilities_with_dependencies(
     } else {
         ConverterStatus::ExternalRequired
     };
+    let tts_status = if platform::find_tts(resources().as_deref()).is_some()
+        && ffmpeg_status == ConverterStatus::Ready
+    {
+        ConverterStatus::Ready
+    } else {
+        ConverterStatus::ExternalRequired
+    };
     let pdf_to_docx_status = if pdf_to_docx_ready {
         ConverterStatus::Ready
     } else {
@@ -153,6 +160,17 @@ pub fn capabilities_with_dependencies(
             &["pdf", "txt"],
         ),
         ConverterCapability::new(
+            "text-to-speech",
+            ConverterCategory::Audio,
+            "converters.textToSpeech.title",
+            "converters.textToSpeech.description",
+            "Piper voices",
+            tts_status,
+            true,
+            &["txt"],
+            &["mp3", "wav", "flac", "aac", "m4a", "ogg"],
+        ),
+        ConverterCapability::new(
             "speech-to-text",
             ConverterCategory::Audio,
             "converters.speechToText.title",
@@ -201,6 +219,7 @@ mod tests {
             "pdf-tools",
             "pdf-to-images",
             "audio",
+            "text-to-speech",
             "remove-background",
             "upscale-image",
             "video",

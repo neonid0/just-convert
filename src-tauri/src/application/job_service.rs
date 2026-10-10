@@ -20,15 +20,16 @@ use crate::{
         job_queue::JobQueue,
         ocr::{self, OcrRequest},
         office_converter, pdf_converter, pdf_docx_converter, pdf_image_converter,
+        text_to_speech::{self, Synthesis},
         transcription::{self, Transcription},
         video_converter::{self, FrameExtraction, VideoConversion},
     },
     domain::job::{
         AudioFormat, ExecutionOutcome, ImageAiOperation, ImageFolderMode, Job, JobError, JobKind,
         JobStatus, OcrFormat, OcrLanguage, PdfImageFormat, PdfOperation, SpeechModel,
-        TranscriptFormat, VideoFormat, VideoQuality,
+        TranscriptFormat, TtsSpeed, TtsVoice, VideoFormat, VideoQuality,
     },
-    platform::PdfToDocxRuntime,
+    platform::{self, PdfToDocxRuntime},
 };
 
 static NEXT_JOB_ID: AtomicU64 = AtomicU64::new(1);
@@ -45,6 +46,7 @@ pub struct EnginePaths {
     pub whisper_model_path: Option<PathBuf>,
     pub tessdata_path: Option<PathBuf>,
     pub image_ai_directory: Option<PathBuf>,
+    pub tts: Option<platform::TtsPaths>,
     pub dependency_service: Option<Arc<DependencyService>>,
 }
 
@@ -68,6 +70,7 @@ pub struct JobService {
     whisper_model_path: Option<PathBuf>,
     tessdata_path: Option<PathBuf>,
     image_ai_directory: Option<PathBuf>,
+    tts: Option<platform::TtsPaths>,
     models_directory: PathBuf,
     dependency_service: Option<Arc<DependencyService>>,
 }
@@ -113,6 +116,7 @@ impl JobService {
             whisper_model_path: engines.whisper_model_path,
             tessdata_path: engines.tessdata_path,
             image_ai_directory: engines.image_ai_directory,
+            tts: engines.tts,
             models_directory: data_directory.join("models"),
             dependency_service: engines.dependency_service,
         };
@@ -496,6 +500,35 @@ impl JobService {
             interval_seconds,
             now,
         );
+        {
+            let mut state = self.state.lock().map_err(|_| "Job queue lock failed")?;
+            state.queue.enqueue(job.clone());
+            state.jobs.push(job.clone());
+            self.persist(&state)?;
+        }
+        self.start_worker_if_needed();
+        Ok(job)
+    }
+
+    pub fn enqueue_text_to_speech(
+        self: &Arc<Self>,
+        text: String,
+        output_path: String,
+        format: AudioFormat,
+        voice: TtsVoice,
+        speed: TtsSpeed,
+    ) -> Result<Job, String> {
+        text_to_speech::validate_request(&text, Path::new(&output_path), format)?;
+        if self.tts.is_none() {
+            return Err("The bundled text-to-speech engine is unavailable".into());
+        }
+        if format != AudioFormat::Wav && self.ffmpeg_path.is_none() {
+            return Err("The bundled FFmpeg executable is unavailable".into());
+        }
+
+        let now = unix_timestamp();
+        let id = format!("{now}-{}", NEXT_JOB_ID.fetch_add(1, Ordering::Relaxed));
+        let job = Job::queued_text_to_speech(id, text, output_path, format, voice, speed, now);
         {
             let mut state = self.state.lock().map_err(|_| "Job queue lock failed")?;
             state.queue.enqueue(job.clone());
@@ -964,6 +997,34 @@ impl JobService {
                         output_path: Path::new(output_path),
                         format: *format,
                         language: language.as_deref(),
+                        job_id: &job.id,
+                    },
+                    cancellation,
+                    |progress| self.update_progress(&job.id, progress),
+                )
+            }
+            JobKind::TextToSpeech {
+                text,
+                output_path,
+                format,
+                voice,
+                speed,
+            } => {
+                let tts = self
+                    .tts
+                    .as_ref()
+                    .ok_or("The bundled text-to-speech engine is unavailable")?;
+                text_to_speech::convert(
+                    Synthesis {
+                        runtime_path: &tts.executable,
+                        voices_directory: &tts.voices_directory,
+                        ffmpeg_path: self.ffmpeg_path.as_deref(),
+                        ffprobe_path: self.ffprobe_path.as_deref(),
+                        text,
+                        output_path: Path::new(output_path),
+                        format: *format,
+                        voice: *voice,
+                        speed: *speed,
                         job_id: &job.id,
                     },
                     cancellation,
