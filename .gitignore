@@ -54,4 +54,6 @@ vendor/whisper/
 vendor/tesseract/
 vendor/tesseract-build/
 vendor/image-ai/
+vendor/sherpa-onnx/
+vendor/tts/
 src-tauri/signing.conf.json
