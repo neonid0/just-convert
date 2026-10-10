@@ -8,10 +8,10 @@ use serde_json::json;
 
 use super::{paths, tool_error, JustConvertServer, WaitOptions};
 use crate::{
-    application::converter_registry,
+    application::{converter_registry, file_manager},
     domain::job::{
         AudioFormat, ImageAiOperation, ImageFolderMode, OcrFormat, OcrLanguage, PdfImageFormat,
-        PdfOperation, SpeechModel, TranscriptFormat, VideoFormat, VideoQuality,
+        PdfOperation, SpeechModel, TranscriptFormat, TtsSpeed, TtsVoice, VideoFormat, VideoQuality,
     },
 };
 
@@ -246,6 +246,24 @@ pub struct UpscaleImageRequest {
     pub wait: WaitOptions,
 }
 
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct TextToSpeechRequest {
+    /// The text to read aloud, up to 20,000 characters. Give either text or input_path.
+    pub text: Option<String>,
+    /// Absolute path of a UTF-8 .txt or .md file to read aloud, instead of text.
+    pub input_path: Option<String>,
+    /// Voice: english (American, female) or turkish (male). Defaults to english.
+    pub voice: Option<TtsVoice>,
+    /// Speaking speed. Defaults to normal.
+    pub speed: Option<TtsSpeed>,
+    /// Audio format. Defaults to mp3.
+    pub format: Option<AudioFormat>,
+    /// Absolute output path with the format's extension. Defaults to the input file's folder, or the Downloads folder for pasted text.
+    pub output_path: Option<String>,
+    #[serde(flatten)]
+    pub wait: WaitOptions,
+}
+
 const DEFAULT_DPI: u16 = 150;
 
 #[tool_router(router = conversion_tools, vis = "pub(super)")]
@@ -299,6 +317,56 @@ impl JustConvertServer {
             )?;
             self.jobs
                 .enqueue_audio(input, output, request.format)
+                .map(|job| vec![job])
+        })();
+        Ok(self.finish(result, request.wait, meta, peer).await)
+    }
+
+    #[tool(
+        description = "Read text aloud with a natural local voice (English or Turkish) and save it as an audio file, entirely on this machine.",
+        annotations(destructive_hint = false, open_world_hint = false)
+    )]
+    async fn text_to_speech(
+        &self,
+        Parameters(request): Parameters<TextToSpeechRequest>,
+        meta: RequestMetaObject,
+        peer: Peer<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        let result = (|| {
+            let format = request.format.unwrap_or(AudioFormat::Mp3);
+            let (text, output) = match (&request.text, &request.input_path) {
+                (Some(_), Some(_)) | (None, None) => {
+                    return Err("Give either text or input_path".to_string())
+                }
+                (Some(text), None) => (
+                    text.clone(),
+                    paths::output_for_text(
+                        request.output_path.as_deref(),
+                        "speech",
+                        format.extension(),
+                    )?,
+                ),
+                (None, Some(path)) => {
+                    let input = paths::absolute(path)?;
+                    (
+                        file_manager::read_text_file(&input)?,
+                        paths::output_file(
+                            request.output_path.as_deref(),
+                            &input,
+                            "",
+                            format.extension(),
+                        )?,
+                    )
+                }
+            };
+            self.jobs
+                .enqueue_text_to_speech(
+                    text,
+                    output,
+                    format,
+                    request.voice.unwrap_or(TtsVoice::English),
+                    request.speed.unwrap_or_default(),
+                )
                 .map(|job| vec![job])
         })();
         Ok(self.finish(result, request.wait, meta, peer).await)

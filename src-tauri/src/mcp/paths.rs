@@ -42,6 +42,23 @@ pub fn output_file(
         .into_owned())
 }
 
+/// Uses the given output path, or picks a free `<stem>.<extension>` in the Downloads folder.
+pub fn output_for_text(
+    output: Option<&str>,
+    stem: &str,
+    extension: &str,
+) -> Result<String, String> {
+    if let Some(output) = output {
+        return absolute(output);
+    }
+    let directory = dirs::download_dir()
+        .or_else(dirs::home_dir)
+        .ok_or("The Downloads folder could not be determined")?;
+    Ok(next_free(&directory, stem, extension)
+        .to_string_lossy()
+        .into_owned())
+}
+
 /// Uses the given output directory, or the directory containing the input.
 pub fn output_directory(output: Option<&str>, input: &str) -> Result<String, String> {
     if let Some(output) = output {
