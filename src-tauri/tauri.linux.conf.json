@@ -1,0 +1,23 @@
+{
+  "bundle": {
+    "targets": ["deb", "appimage"],
+    "resources": {
+      "../vendor/ffmpeg/bin/ffmpeg.exe": null,
+      "../vendor/ffmpeg/bin/ffprobe.exe": null,
+      "../vendor/qpdf/bin/": null,
+      "../vendor/pdfium/bin/": null,
+      "../vendor/ffmpeg/bin/ffmpeg": "vendor/ffmpeg/bin/ffmpeg",
+      "../vendor/ffmpeg/bin/ffprobe": "vendor/ffmpeg/bin/ffprobe",
+      "../vendor/qpdf/bin/qpdf": "vendor/qpdf/bin/qpdf",
+      "../vendor/qpdf/lib/": "vendor/qpdf/lib/",
+      "../vendor/pdfium/bin/libpdfium.so": "vendor/pdfium/bin/libpdfium.so",
+      "../vendor/libreoffice/": "vendor/libreoffice/",
+      "../vendor/pdf-to-docx/": "vendor/pdf-to-docx/"
+    },
+    "linux": {
+      "deb": {
+        "depends": ["libnss3"]
+      }
+    }
+  }
+}
