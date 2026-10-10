@@ -21,3 +21,4 @@ These records capture decisions that are expensive to reverse. Proposed changes 
 | [ADR-015](ADR-015-video-conversion.md)            | Video conversion with the bundled FFmpeg            |
 | [ADR-016](ADR-016-ocr.md)                         | Offline OCR with Tesseract                          |
 | [ADR-017](ADR-017-image-ai.md)                    | Local image AI with tract                           |
+| [ADR-018](ADR-018-text-to-speech.md)              | Offline text-to-speech with Piper voices            |

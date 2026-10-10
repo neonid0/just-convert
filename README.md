@@ -13,6 +13,7 @@ Licensed under your choice of the [MIT or Apache 2.0 license](LICENSE).
 - **Remove background** — Cut out the subject of a photo onto a transparent PNG with a local AI model
 - **Upscale image** — Enlarge photos 2x or 4x and restore detail with Real-ESRGAN, offline
 - **OCR** — Turn scanned PDFs and images (PNG, JPG, TIFF, BMP, WebP) into searchable PDFs or plain text with Tesseract, in English or Turkish, offline
+- **Text to speech** — Read text aloud with natural English or Turkish Piper voices and save it as MP3, WAV, FLAC, AAC, M4A, or OGG, offline
 - **Speech to text** — Transcribe audio or video to text, SRT or WebVTT subtitles, or timestamped JSON with Whisper, offline; an optional high-accuracy model downloads once on request
 - **Images to PDF** — Combine JPG, PNG, WebP, and TIFF images into a single PDF or one PDF per image
 - **PDF to Images** — Render PDF pages to PNG or JPEG at normal (150 DPI) or high (300 DPI) quality
