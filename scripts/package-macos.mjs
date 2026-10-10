@@ -112,6 +112,7 @@ for (const engine of [
   "pdf-to-docx",
   "whisper",
   "tesseract",
+  "image-ai",
 ]) {
   await rm(join(vendor, engine), { recursive: true, force: true });
   run("ditto", [resolve(projectRoot, "vendor", engine), join(vendor, engine)]);
