@@ -1,6 +1,6 @@
 # Just Convert
 
-A local-first desktop file manager and file converter for Windows 10 and Windows 11 x64.
+A local-first desktop file manager and file converter for Windows 10 and 11 x64, macOS 11+, and Linux.
 
 Licensed under your choice of the [MIT or Apache 2.0 license](LICENSE).
 
@@ -35,8 +35,8 @@ Licensed under your choice of the [MIT or Apache 2.0 license](LICENSE).
 
 ### Dependencies & Settings
 
-- FFmpeg and qpdf bundled — work out of the box
-- LibreOffice and Python detected automatically or configured manually in Settings
+- Every engine is bundled (FFmpeg, qpdf, PDFium, LibreOffice, and the PDF-to-Word worker), so nothing else needs to be installed
+- Engines can be overridden manually in Settings
 - English and Turkish interface
 - Light, dark, and system themes
 
@@ -48,10 +48,11 @@ Licensed under your choice of the [MIT or Apache 2.0 license](LICENSE).
 
 ## Dependencies
 
-- FFmpeg and qpdf are bundled with Just Convert; no separate installation is needed.
-- LibreOffice must be installed separately for Office-to-PDF conversion. Download it from the [official LibreOffice website](https://www.libreoffice.org/download/download-libreoffice/).
-- Python 3.10 or newer, plus the `pymupdf` and `pdf2docx` packages, must be installed separately for PDF-to-Word conversion. Install the packages with `pip install pymupdf pdf2docx`.
-- All other features work out of the box with no additional setup.
+Nothing. Every converter works right after installation, offline, on Windows, macOS, and Linux. FFmpeg, qpdf, PDFium, LibreOffice, and a self-contained PDF-to-Word worker (Python, PyMuPDF, and pdf2docx) ship inside the app. A different LibreOffice or Python can still be selected in Settings.
+
+## macOS and Linux
+
+macOS builds are `.app`/`.dmg` and Linux builds are `.deb`/AppImage, roughly 450–600 MB because LibreOffice is included. These builds are unsigned too, so macOS Gatekeeper warns on first launch. See [ADR-013](docs/architecture/ADR-013-macos-and-linux.md).
 
 ## Windows v1 Distribution
 
@@ -70,12 +71,20 @@ PDF-to-Word uses a separately installed Python runtime with PyMuPDF (AGPL v3 or 
 Built with Tauri 2, Rust, React, TypeScript, and pnpm.
 
 - Install dependencies: `pnpm install`
+- Fetch the engines for your platform (needs [uv](https://docs.astral.sh/uv/) to build the PDF-to-Word worker): `pnpm fetch:engines`. On Linux, also install the [Tauri system dependencies](https://tauri.app/start/prerequisites/#linux).
+- Build installers: `pnpm tauri build` on Windows, `pnpm bundle:macos` on macOS, `pnpm bundle:linux` on Linux
 - Run the browser UI: `pnpm dev`
 - Run the desktop application: `pnpm tauri dev`
 - Run the complete quality gate: `pnpm check`
 
+## Continuous Integration and Releases
+
+- **Quality** (`quality.yml`): `pnpm check` on Windows, macOS, and Ubuntu for every push and pull request.
+- **Engines** (`engines.yml`): checks that every pinned engine download is still available, then fetches the engines and runs the full engine test suite on all three platforms. Runs weekly and on pull requests that touch engines.
+- **Release** (`release.yml`): pushing a `v<version>` tag that matches the app version builds the Windows, macOS (Apple silicon and Intel), and Linux (x64 and arm64) installers, tests every bundled engine on each platform, and publishes them with `SHA256SUMS` as a draft GitHub release. Running it manually builds the installers as workflow artifacts without publishing.
+
 ## Post-v1 Roadmap
 
-Cross-platform support is a possible future roadmap item, not a current commitment. Optional Tesseract OCR for scanned PDFs and parallel queue execution are also deferred until after the Windows v1 release.
+Optional Tesseract OCR for scanned PDFs and parallel queue execution are deferred until after the Windows v1 release.
 
 Architectural decisions are recorded in [`docs/architecture/`](docs/architecture/README.md). Conversion engines must remain behind typed Rust adapters and may not be launched directly by frontend code.
