@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "bootstrap-sha": "74b5cce292151174940b37621328679a29017a60",
+  "last-release-sha": "74b5cce292151174940b37621328679a29017a60",
   "draft": true,
   "force-tag-creation": true,
   "include-component-in-tag": false,
@@ -52,7 +52,7 @@
         {
           "type": "toml",
           "path": "src-tauri/Cargo.lock",
-          "jsonpath": "$.package[?(@.name==\"just-convert\")].version"
+          "jsonpath": "$.package[?(@.name=='just-convert')].version"
         }
       ]
     }
