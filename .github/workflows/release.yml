@@ -59,7 +59,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            bundle: pnpm tauri build
+            bundle: pnpm bundle:windows
             artifacts: src-tauri/target/release/bundle/nsis/*.exe
           - os: macos-latest
             bundle: pnpm bundle:macos

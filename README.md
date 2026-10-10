@@ -72,7 +72,7 @@ Built with Tauri 2, Rust, React, TypeScript, and pnpm.
 
 - Install dependencies: `pnpm install`
 - Fetch the engines for your platform (needs [uv](https://docs.astral.sh/uv/) to build the PDF-to-Word worker): `pnpm fetch:engines`. On Linux, also install the [Tauri system dependencies](https://tauri.app/start/prerequisites/#linux).
-- Build installers: `pnpm tauri build` on Windows, `pnpm bundle:macos` on macOS, `pnpm bundle:linux` on Linux
+- Build installers: `pnpm bundle:windows`, `pnpm bundle:macos`, or `pnpm bundle:linux`
 - Run the browser UI: `pnpm dev`
 - Run the desktop application: `pnpm tauri dev`
 - Run the complete quality gate: `pnpm check`

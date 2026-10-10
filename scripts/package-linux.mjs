@@ -21,12 +21,26 @@ const config = JSON.parse(
 const bundleDirectory = resolve(projectRoot, "src-tauri/target/release/bundle");
 const lateResources = ["libreoffice", "pdf-to-docx"];
 
-run("pnpm", ["tauri", "build", "--bundles", "deb"]);
+const engineConfig = resolve(projectRoot, "src-tauri/engines/linux.conf.json");
+const extraConfig = process.argv.slice(2);
+
+run("pnpm", [
+  "tauri",
+  "build",
+  "--bundles",
+  "deb",
+  "--config",
+  engineConfig,
+  ...extraConfig,
+]);
 run("pnpm", [
   "tauri",
   "build",
   "--bundles",
   "appimage",
+  "--config",
+  engineConfig,
+  ...extraConfig,
   "--config",
   JSON.stringify({
     bundle: {
