@@ -81,7 +81,7 @@ Built with Tauri 2, Rust, React, TypeScript, and pnpm.
 
 - **Quality** (`quality.yml`): `pnpm check` on Windows, macOS, and Ubuntu for every push and pull request.
 - **Engines** (`engines.yml`): checks that every pinned engine download is still available, then fetches the engines and runs the full engine test suite on all three platforms. Runs weekly and on pull requests that touch engines.
-- **Release** (`release.yml`): pushing a `v<version>` tag that matches the app version builds the Windows, macOS (Apple silicon and Intel), and Linux (x64 and arm64) installers, tests every bundled engine on each platform, and publishes them with `SHA256SUMS` as a draft GitHub release. Running it manually builds the installers as workflow artifacts without publishing.
+- **Release** (`release.yml`): pushing a `v<version>` tag that matches the app version builds the Windows, macOS (Apple silicon and Intel), and Linux (x64 and arm64) installers, tests every bundled engine on each platform, and publishes them with `SHA256SUMS` as a draft GitHub release. Pull requests that change packaging or engines, and manual runs, build the installers as workflow artifacts without publishing.
 
 ## Post-v1 Roadmap
 
