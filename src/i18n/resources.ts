@@ -79,6 +79,11 @@ export const resources = {
           description:
             "Convert between MP3, WAV, FLAC, AAC, M4A, and OGG, or extract audio from video, with FFmpeg.",
         },
+        textToSpeech: {
+          title: "Text to speech",
+          description:
+            "Read text aloud with natural English or Turkish voices and save it as an audio file, offline.",
+        },
         removeBackground: {
           title: "Remove background",
           description:
@@ -167,6 +172,46 @@ export const resources = {
         adding: "Adding…",
         queued: "Conversion added to the local queue.",
         batchQueued: "{{count}} audio files added to the local queue.",
+        viewJobs: "View jobs",
+      },
+      tts: {
+        back: "All conversion tools",
+        title: "Text to speech",
+        description:
+          "Read text aloud with a natural voice and save it as audio. The Piper voices run entirely on this computer.",
+        text: {
+          label: "Text",
+          help: "Type or paste up to 20,000 characters, or open a .txt or .md file.",
+          placeholder: "Type or paste the text to read aloud…",
+          open: "Open text file",
+          count: "{{count}} / {{max}} characters",
+        },
+        voice: {
+          label: "Voice",
+          help: "Each voice reads in its own language.",
+          english: "English (US, female)",
+          turkish: "Turkish (male)",
+        },
+        speed: {
+          label: "Speaking speed",
+          help: "Slower is easier to follow; faster saves time.",
+          slow: "Slow",
+          normal: "Normal",
+          fast: "Fast",
+        },
+        format: {
+          label: "Audio format",
+          help: "MP3 plays everywhere; WAV is uncompressed.",
+        },
+        output: {
+          label: "Save location",
+          help: "Existing files are never overwritten.",
+          choose: "Choose output",
+        },
+        localNotice: "Runs locally · Text never leaves this computer",
+        convert: "Add to queue",
+        adding: "Adding…",
+        queued: "Speech added to the local queue.",
         viewJobs: "View jobs",
       },
       imageAi: {
@@ -592,6 +637,7 @@ export const resources = {
         pdfToDocxDetail: "{{source}} · PDF to Word",
         transcriptionDetail: "{{source}} → {{format}} transcript",
         ocrDetail: "{{source}} → {{format}} (OCR)",
+        textToSpeechDetail: "“{{text}}” → {{format}} speech",
         removeBackgroundDetail: "{{source}} → transparent background",
         upscaleDetail: "{{source}} → upscaled {{scale}}x",
         videoConversionDetail: "{{source}} → {{format}}",
@@ -747,6 +793,11 @@ export const resources = {
           description:
             "FFmpeg ile MP3, WAV, FLAC, AAC, M4A ve OGG arasında dönüştürün veya videodan sesi çıkarın.",
         },
+        textToSpeech: {
+          title: "Metinden sese",
+          description:
+            "Metni doğal İngilizce veya Türkçe seslerle okutun ve ses dosyası olarak kaydedin; çevrimdışı çalışır.",
+        },
         removeBackground: {
           title: "Arka planı kaldır",
           description:
@@ -836,6 +887,46 @@ export const resources = {
         queued: "Dönüştürme yerel kuyruğa eklendi.",
         batchQueued: "{{count}} ses dosyası yerel kuyruğa eklendi.",
         viewJobs: "İşlemleri görüntüle",
+      },
+      tts: {
+        back: "Tüm dönüştürme araçları",
+        title: "Metinden sese",
+        description:
+          "Metni doğal bir sesle okutun ve ses olarak kaydedin. Piper sesleri tamamen bu bilgisayarda çalışır.",
+        text: {
+          label: "Metin",
+          help: "20.000 karaktere kadar yazın veya yapıştırın ya da bir .txt veya .md dosyası açın.",
+          placeholder: "Okutulacak metni yazın veya yapıştırın…",
+          open: "Metin dosyası aç",
+          count: "{{count}} / {{max}} karakter",
+        },
+        voice: {
+          label: "Ses",
+          help: "Her ses kendi dilinde okur.",
+          english: "İngilizce (ABD, kadın)",
+          turkish: "Türkçe (erkek)",
+        },
+        speed: {
+          label: "Konuşma hızı",
+          help: "Yavaş olan takip etmesi kolaydır; hızlı olan zaman kazandırır.",
+          slow: "Yavaş",
+          normal: "Normal",
+          fast: "Hızlı",
+        },
+        format: {
+          label: "Ses biçimi",
+          help: "MP3 her yerde çalar; WAV sıkıştırılmamıştır.",
+        },
+        output: {
+          label: "Kayıt konumu",
+          help: "Mevcut dosyaların üzerine asla yazılmaz.",
+          choose: "Çıktıyı seç",
+        },
+        localNotice: "Yerel çalışır · Metin bu bilgisayardan çıkmaz",
+        convert: "Kuyruğa ekle",
+        adding: "Ekleniyor…",
+        queued: "Konuşma yerel kuyruğa eklendi.",
+        viewJobs: "İşleri görüntüle",
       },
       imageAi: {
         back: "Tüm dönüştürme araçları",
@@ -1266,6 +1357,7 @@ export const resources = {
         pdfToDocxDetail: "{{source}} · PDF'den Word'e",
         transcriptionDetail: "{{source}} → {{format}} metin",
         ocrDetail: "{{source}} → {{format}} (OCR)",
+        textToSpeechDetail: "“{{text}}” → {{format}} ses",
         removeBackgroundDetail: "{{source}} → saydam arka plan",
         upscaleDetail: "{{source}} → {{scale}}x büyütüldü",
         videoConversionDetail: "{{source}} → {{format}}",

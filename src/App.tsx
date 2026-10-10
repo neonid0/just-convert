@@ -12,6 +12,7 @@ import { ConverterGrid } from "./features/converters/ConverterGrid";
 import { AudioConverter } from "./features/converters/AudioConverter";
 import { ImageAiTool } from "./features/converters/ImageAiTool";
 import { OcrConverter } from "./features/converters/OcrConverter";
+import { TextToSpeech } from "./features/converters/TextToSpeech";
 import { VideoConverter } from "./features/converters/VideoConverter";
 import { SpeechToText } from "./features/converters/SpeechToText";
 import { ImagesToPdf } from "./features/converters/ImagesToPdf";
@@ -232,6 +233,12 @@ function App() {
             <ImageAiTool
               desktopAvailable={isTauri()}
               mode={activeTool}
+              onBack={() => setActiveTool(null)}
+              onViewJobs={() => setActiveSection("jobs")}
+            />
+          ) : activeSection === "convert" && activeTool === "text-to-speech" ? (
+            <TextToSpeech
+              desktopAvailable={isTauri()}
               onBack={() => setActiveTool(null)}
               onViewJobs={() => setActiveSection("jobs")}
             />
