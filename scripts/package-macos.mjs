@@ -20,6 +20,15 @@ const bundleDirectory = resolve(projectRoot, "src-tauri/target/release/bundle");
 const app = join(bundleDirectory, "macos", `${config.productName}.app`);
 const vendor = join(app, "Contents/Resources/vendor");
 
+// CI passes unset secrets as empty strings, which Tauri would treat as a signing identity.
+for (const name of [
+  "APPLE_SIGNING_IDENTITY",
+  "APPLE_ID",
+  "APPLE_PASSWORD",
+  "APPLE_TEAM_ID",
+]) {
+  if (!process.env[name]) delete process.env[name];
+}
 const identity = process.env.APPLE_SIGNING_IDENTITY;
 const notarize =
   identity &&
