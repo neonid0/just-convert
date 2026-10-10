@@ -81,7 +81,19 @@ Built with Tauri 2, Rust, React, TypeScript, and pnpm.
 
 - **Quality** (`quality.yml`): `pnpm check` on Windows, macOS, and Ubuntu for every push and pull request.
 - **Engines** (`engines.yml`): checks that every pinned engine download is still available, then fetches the engines and runs the full engine test suite on all three platforms. Runs weekly and on pull requests that touch engines.
-- **Release** (`release.yml`): pushing a `v<version>` tag that matches the app version builds the Windows, macOS (Apple silicon and Intel), and Linux (x64 and arm64) installers, tests every bundled engine on each platform, and publishes them with `SHA256SUMS` as a draft GitHub release. Pull requests that change packaging or engines, and manual runs, build the installers as workflow artifacts without publishing.
+- **Versioning** (`release-please.yml`): commits use [Conventional Commits](https://www.conventionalcommits.org/). On every push to `main`, Release Please keeps a release pull request up to date that bumps the version in `package.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock`, and `src-tauri/tauri.conf.json` and updates `CHANGELOG.md`. Merging it tags the release and starts the installer build.
+- **Release** (`release.yml`): builds the Windows, macOS (Apple silicon and Intel), and Linux (x64 and arm64) installers and tests every bundled engine on each platform. For a Release Please release, it attaches the installers and `SHA256SUMS` and then publishes the release. A manually pushed `v<version>` tag gets a draft release instead. Pull requests that change packaging or engines, and manual runs, build the installers as workflow artifacts without publishing.
+
+Optional repository secrets:
+
+| Secret                                                                      | Effect                                                                                        |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `RELEASE_PLEASE_TOKEN`                                                      | Personal access token so release pull requests also run CI (`GITHUB_TOKEN` cannot trigger it) |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` | Sign the macOS app and its engines with a Developer ID certificate and the hardened runtime   |
+| `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`                               | Also notarize and staple the app and DMG                                                      |
+| `WINDOWS_CERTIFICATE`, `WINDOWS_CERTIFICATE_PASSWORD`                       | Sign the Windows executable and installer                                                     |
+
+Without them, builds stay unsigned as described above.
 
 ## Post-v1 Roadmap
 
