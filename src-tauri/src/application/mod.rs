@@ -14,5 +14,6 @@ pub mod pdf_converter;
 pub mod pdf_docx_converter;
 pub mod pdf_image_converter;
 pub mod searchable_pdf;
+pub mod text_to_speech;
 pub mod transcription;
 pub mod video_converter;

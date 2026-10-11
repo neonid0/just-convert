@@ -143,6 +143,16 @@ export function JobList({ desktopAvailable }: JobListProps) {
           }),
         };
       }
+      if (job.kind.type === "text_to_speech") {
+        const snippet = job.kind.text.trim().replace(/\s+/g, " ");
+        return {
+          output: fileName(job.kind.output_path),
+          detail: t("jobs.textToSpeechDetail", {
+            text: snippet.length > 48 ? `${snippet.slice(0, 48)}…` : snippet,
+            format: job.kind.format.toUpperCase(),
+          }),
+        };
+      }
       if (job.kind.type === "image_ai") {
         return {
           output: fileName(job.kind.output_path),

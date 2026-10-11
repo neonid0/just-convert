@@ -120,6 +120,18 @@ export interface ImageAiJobKind {
   operation: ImageAiOperation;
 }
 
+export type TtsVoice = "english" | "turkish";
+export type TtsSpeed = "slow" | "normal" | "fast";
+
+export interface TextToSpeechJobKind {
+  type: "text_to_speech";
+  text: string;
+  output_path: string;
+  format: AudioFormat;
+  voice: TtsVoice;
+  speed: TtsSpeed;
+}
+
 export interface ConversionJob {
   id: string;
   jobType:
@@ -133,7 +145,8 @@ export interface ConversionJob {
     | "video_conversion"
     | "video_frames"
     | "ocr"
-    | "image_ai";
+    | "image_ai"
+    | "text_to_speech";
   kind:
     | AudioJobKind
     | PdfJobKind
@@ -145,7 +158,8 @@ export interface ConversionJob {
     | VideoConversionJobKind
     | VideoFramesJobKind
     | OcrJobKind
-    | ImageAiJobKind;
+    | ImageAiJobKind
+    | TextToSpeechJobKind;
   status: JobStatus;
   progress: number;
   createdAt: number;

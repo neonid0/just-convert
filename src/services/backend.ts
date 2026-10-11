@@ -19,6 +19,8 @@ import type {
   PdfOperation,
   SpeechModel,
   TranscriptFormat,
+  TtsSpeed,
+  TtsVoice,
   VideoFormat,
   VideoQuality,
 } from "../types/jobs";
@@ -69,6 +71,17 @@ const browserFallback: AppBootstrap = {
       status: "ready",
       bundled: true,
       inputExtensions: ["mp3", "wav", "flac", "aac", "m4a", "ogg", "mp4"],
+      outputExtensions: ["mp3", "wav", "flac", "aac", "m4a", "ogg"],
+    },
+    {
+      id: "text-to-speech",
+      category: "audio",
+      titleKey: "converters.textToSpeech.title",
+      descriptionKey: "converters.textToSpeech.description",
+      engine: "Piper voices",
+      status: "ready",
+      bundled: true,
+      inputExtensions: ["txt"],
       outputExtensions: ["mp3", "wav", "flac", "aac", "m4a", "ogg"],
     },
     {
@@ -301,6 +314,21 @@ export async function chooseAudioOutput(
     filters: [{ name: format.toUpperCase(), extensions: [format] }],
   });
   return typeof selected === "string" ? selected : null;
+}
+
+export async function chooseTextFile(): Promise<string | null> {
+  requireDesktop();
+  const selected = await open({
+    directory: false,
+    multiple: false,
+    filters: [{ name: "Text", extensions: ["txt", "md"] }],
+  });
+  return typeof selected === "string" ? selected : null;
+}
+
+export async function readTextFile(path: string): Promise<string> {
+  requireDesktop();
+  return invoke<string>("read_text_file", { path });
 }
 
 export async function chooseImageFile(): Promise<string | null> {
@@ -542,6 +570,23 @@ export async function enqueuePdfFolderToDocx(
   return invoke<ConversionJob[]>("enqueue_pdf_folder_to_docx", {
     inputDirectory,
     outputDirectory,
+  });
+}
+
+export async function enqueueTextToSpeech(
+  text: string,
+  outputPath: string,
+  format: AudioFormat,
+  voice: TtsVoice,
+  speed: TtsSpeed,
+): Promise<ConversionJob> {
+  requireDesktop();
+  return invoke<ConversionJob>("enqueue_text_to_speech", {
+    text,
+    outputPath,
+    format,
+    voice,
+    speed,
   });
 }
 

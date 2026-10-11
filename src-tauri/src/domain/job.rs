@@ -150,6 +150,46 @@ pub enum ImageAiOperation {
     Upscale { scale: u8 },
 }
 
+#[cfg_attr(feature = "mcp", derive(schemars::JsonSchema))]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TtsVoice {
+    /// American English, female (Piper en_US-ljspeech).
+    English,
+    /// Turkish, male (Piper tr_TR-fettah).
+    Turkish,
+}
+
+impl TtsVoice {
+    pub fn directory(self) -> &'static str {
+        match self {
+            Self::English => "en",
+            Self::Turkish => "tr",
+        }
+    }
+}
+
+#[cfg_attr(feature = "mcp", derive(schemars::JsonSchema))]
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TtsSpeed {
+    Slow,
+    #[default]
+    Normal,
+    Fast,
+}
+
+impl TtsSpeed {
+    /// The VITS length scale: larger values speak more slowly.
+    pub fn length_scale(self) -> &'static str {
+        match self {
+            Self::Slow => "1.25",
+            Self::Normal => "1.0",
+            Self::Fast => "0.8",
+        }
+    }
+}
+
 /// Compression preset: trades file size against visual quality.
 #[cfg_attr(feature = "mcp", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
@@ -267,6 +307,13 @@ pub enum JobKind {
         input_path: String,
         output_path: String,
         operation: ImageAiOperation,
+    },
+    TextToSpeech {
+        text: String,
+        output_path: String,
+        format: AudioFormat,
+        voice: TtsVoice,
+        speed: TtsSpeed,
     },
 }
 
@@ -544,6 +591,34 @@ impl Job {
                 input_path: input_path.into(),
                 output_path: output_path.into(),
                 operation,
+            },
+            status: JobStatus::Queued,
+            progress: 0,
+            created_at,
+            started_at: None,
+            finished_at: None,
+            error: None,
+        }
+    }
+
+    pub fn queued_text_to_speech(
+        id: impl Into<String>,
+        text: impl Into<String>,
+        output_path: impl Into<String>,
+        format: AudioFormat,
+        voice: TtsVoice,
+        speed: TtsSpeed,
+        created_at: u64,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            job_type: "text_to_speech".into(),
+            kind: JobKind::TextToSpeech {
+                text: text.into(),
+                output_path: output_path.into(),
+                format,
+                voice,
+                speed,
             },
             status: JobStatus::Queued,
             progress: 0,

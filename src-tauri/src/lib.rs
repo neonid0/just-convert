@@ -41,6 +41,7 @@ pub fn run() {
                     image_ai_directory: platform::find_image_ai_models(
                         resource_directory.as_deref(),
                     ),
+                    tts: platform::find_tts(resource_directory.as_deref()),
                     ..EnginePaths::default()
                 },
             )?);
@@ -54,6 +55,7 @@ pub fn run() {
             commands::dependencies::get_dependency_statuses,
             commands::dependencies::set_dependency_override,
             commands::filesystem::list_directory,
+            commands::filesystem::read_text_file,
             commands::filesystem::create_directory,
             commands::filesystem::rename_entry,
             commands::filesystem::copy_entries,
@@ -73,6 +75,7 @@ pub fn run() {
             commands::jobs::enqueue_pdf_folder_to_docx,
             commands::jobs::enqueue_transcription,
             commands::jobs::enqueue_image_ai,
+            commands::jobs::enqueue_text_to_speech,
             commands::jobs::enqueue_ocr,
             commands::jobs::enqueue_video_conversion,
             commands::jobs::enqueue_video_frames,

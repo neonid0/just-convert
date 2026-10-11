@@ -1,6 +1,6 @@
 use std::{
     ffi::OsString,
-    io::{BufRead, BufReader, Read},
+    io::{BufRead, BufReader},
     path::{Path, PathBuf},
     process::Stdio,
     sync::{
@@ -80,36 +80,13 @@ pub fn run<F>(
 where
     F: FnMut(u8),
 {
-    let mut command = platform::background_command(ffmpeg);
-    command
-        .args(arguments)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-
-    let mut child = command
-        .spawn()
-        .map_err(|error| format!("FFmpeg could not be started: {error}"))?;
-    let stdout = child
-        .stdout
-        .take()
-        .ok_or("FFmpeg progress pipe unavailable")?;
-    let stderr = child.stderr.take().ok_or("FFmpeg error pipe unavailable")?;
-    let (progress_tx, progress_rx) = mpsc::channel();
-
-    let progress_thread = thread::spawn(move || {
-        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
-            let _ = progress_tx.send(line);
-        }
-    });
-    let error_thread = thread::spawn(move || {
-        let mut message = String::new();
-        let _ = BufReader::new(stderr).read_to_string(&mut message);
-        message
-    });
-
-    let status = loop {
-        for line in progress_rx.try_iter() {
+    supervise(
+        ffmpeg,
+        arguments,
+        "FFmpeg",
+        "conversion",
+        cancelled,
+        |line| {
             if line == "progress=end" {
                 report_progress(100);
             } else if let (Some(total), Some(value)) = (duration, line.strip_prefix("out_time_us="))
@@ -120,8 +97,66 @@ where
                     report_progress(percent);
                 }
             }
-        }
+        },
+    )
+}
 
+/// Runs an engine executable to completion, handing every output line to `on_line` and
+/// stopping it when `cancelled` is set. A failed exit reports the captured error output.
+pub fn supervise<F>(
+    program: &Path,
+    arguments: Vec<OsString>,
+    engine: &str,
+    task: &str,
+    cancelled: &AtomicBool,
+    mut on_line: F,
+) -> Result<ExecutionOutcome, String>
+where
+    F: FnMut(&str),
+{
+    let mut command = platform::background_command(program);
+    command
+        .args(arguments)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = command
+        .spawn()
+        .map_err(|error| format!("{engine} could not be started: {error}"))?;
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| format!("{engine} output pipe unavailable"))?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| format!("{engine} error pipe unavailable"))?;
+    let (line_tx, line_rx) = mpsc::channel();
+
+    let stdout_tx = line_tx.clone();
+    let stdout_thread = thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            let _ = stdout_tx.send((false, line));
+        }
+    });
+    let stderr_thread = thread::spawn(move || {
+        for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+            let _ = line_tx.send((true, line));
+        }
+    });
+
+    let mut error_lines: Vec<String> = Vec::new();
+    let mut drain = |on_line: &mut F| {
+        for (is_error, line) in line_rx.try_iter() {
+            on_line(&line);
+            if is_error {
+                error_lines.push(line);
+            }
+        }
+    };
+    let status = loop {
+        drain(&mut on_line);
         if cancelled.load(Ordering::Relaxed) {
             let _ = child.kill();
             let _ = child.wait();
@@ -133,23 +168,25 @@ where
             Err(error) => {
                 let _ = child.kill();
                 let _ = child.wait();
-                return Err(format!("FFmpeg process monitoring failed: {error}"));
+                return Err(format!("{engine} process monitoring failed: {error}"));
             }
         }
     };
 
-    let _ = progress_thread.join();
-    let error_message = error_thread.join().unwrap_or_default();
+    let _ = stdout_thread.join();
+    let _ = stderr_thread.join();
+    drain(&mut on_line);
 
     let Some(status) = status else {
         return Ok(ExecutionOutcome::Cancelled);
     };
     if !status.success() {
-        let detail = error_message.trim();
+        let detail = error_lines.join("\n");
+        let detail = detail.trim();
         return Err(if detail.is_empty() {
-            format!("FFmpeg exited with status {status}")
+            format!("{engine} exited with status {status}")
         } else {
-            format!("FFmpeg conversion failed: {detail}")
+            format!("{engine} {task} failed: {detail}")
         });
     }
     Ok(ExecutionOutcome::Completed)

@@ -150,6 +150,38 @@ pub fn find_whisper_model(resource_dir: Option<&Path>) -> Option<PathBuf> {
         .find(|candidate| candidate.is_file())
 }
 
+/// The text-to-speech runtime executable, when it and every voice file are present.
+pub fn find_tts(resource_dir: Option<&Path>) -> Option<TtsPaths> {
+    let executable = if cfg!(windows) {
+        "vendor/sherpa-onnx/bin/sherpa-onnx-offline-tts.exe"
+    } else {
+        "vendor/sherpa-onnx/bin/sherpa-onnx-offline-tts"
+    };
+    let executable = bundled_candidates(resource_dir, executable)
+        .into_iter()
+        .find(|candidate| candidate.is_file())?;
+    let voices_directory = bundled_candidates(resource_dir, "vendor/tts")
+        .into_iter()
+        .find(|directory| {
+            directory.join("espeak-ng-data").is_dir()
+                && ["en", "tr"].iter().all(|voice| {
+                    ["model.onnx", "tokens.txt"]
+                        .iter()
+                        .all(|file| directory.join("voices").join(voice).join(file).is_file())
+                })
+        })?;
+    Some(TtsPaths {
+        executable,
+        voices_directory,
+    })
+}
+
+#[derive(Clone, Debug)]
+pub struct TtsPaths {
+    pub executable: PathBuf,
+    pub voices_directory: PathBuf,
+}
+
 /// The directory holding the bundled background-removal and upscaling models.
 pub fn find_image_ai_models(resource_dir: Option<&Path>) -> Option<PathBuf> {
     bundled_candidates(resource_dir, "vendor/image-ai")

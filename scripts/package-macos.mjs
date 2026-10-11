@@ -113,6 +113,8 @@ for (const engine of [
   "whisper",
   "tesseract",
   "image-ai",
+  "sherpa-onnx",
+  "tts",
 ]) {
   await rm(join(vendor, engine), { recursive: true, force: true });
   run("ditto", [resolve(projectRoot, "vendor", engine), join(vendor, engine)]);
@@ -121,7 +123,13 @@ for (const engine of [
 if (identity) {
   // The embedded LibreOffice keeps its notarized Document Foundation signature. Engine
   // executables load third-party libraries, so they opt out of library validation.
-  for (const engine of ["ffmpeg", "qpdf", "pdfium", "pdf-to-docx"]) {
+  for (const engine of [
+    "ffmpeg",
+    "qpdf",
+    "pdfium",
+    "pdf-to-docx",
+    "sherpa-onnx",
+  ]) {
     const files = await machOFiles(join(vendor, engine));
     for (const file of files.filter((file) => !file.executable))
       sign(file.path);

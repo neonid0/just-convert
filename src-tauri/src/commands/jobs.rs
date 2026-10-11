@@ -6,7 +6,8 @@ use crate::{
     application::job_service::JobService,
     domain::job::{
         AudioFormat, ImageAiOperation, ImageFolderMode, Job, OcrFormat, OcrLanguage,
-        PdfImageFormat, PdfOperation, SpeechModel, TranscriptFormat, VideoFormat, VideoQuality,
+        PdfImageFormat, PdfOperation, SpeechModel, TranscriptFormat, TtsSpeed, TtsVoice,
+        VideoFormat, VideoQuality,
     },
 };
 
@@ -118,6 +119,18 @@ pub fn enqueue_pdf_folder_to_docx(
     output_directory: String,
 ) -> Result<Vec<Job>, String> {
     service.enqueue_pdf_folder_to_docx(input_directory, output_directory)
+}
+
+#[tauri::command]
+pub fn enqueue_text_to_speech(
+    service: State<'_, Arc<JobService>>,
+    text: String,
+    output_path: String,
+    format: AudioFormat,
+    voice: TtsVoice,
+    speed: TtsSpeed,
+) -> Result<Job, String> {
+    service.enqueue_text_to_speech(text, output_path, format, voice, speed)
 }
 
 #[tauri::command]
