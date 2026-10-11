@@ -115,23 +115,25 @@ export function TextToSpeech({
             {t("tts.text.open")}
           </button>
         </div>
-        <textarea
-          aria-label={t("tts.text.label")}
-          disabled={busy}
-          onChange={(event) => {
-            setText(event.target.value);
-            setQueued(false);
-          }}
-          placeholder={t("tts.text.placeholder")}
-          rows={7}
-          value={text}
-        />
-        <p
-          aria-live="polite"
-          className={length > MAX_CHARACTERS ? "inline-error" : undefined}
-        >
-          {t("tts.text.count", { count: length, max: MAX_CHARACTERS })}
-        </p>
+        <div className="tts-text">
+          <textarea
+            aria-label={t("tts.text.label")}
+            disabled={busy}
+            onChange={(event) => {
+              setText(event.target.value);
+              setQueued(false);
+            }}
+            placeholder={t("tts.text.placeholder")}
+            rows={7}
+            value={text}
+          />
+          <p
+            aria-live="polite"
+            className={length > MAX_CHARACTERS ? "inline-error" : undefined}
+          >
+            {t("tts.text.count", { count: length, max: MAX_CHARACTERS })}
+          </p>
+        </div>
 
         <div className="audio-step">
           <span className="step-number">2</span>

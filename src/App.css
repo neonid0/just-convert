@@ -1354,6 +1354,23 @@ textarea:focus-visible {
   resize: vertical;
 }
 
+.tts-text {
+  padding: 0 18px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tts-text p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+.tts-text p.inline-error {
+  color: #dc2626;
+  text-align: left;
+}
+
 .image-batch-options {
   display: grid;
   grid-column: 3 / -1;
