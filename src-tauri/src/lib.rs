@@ -41,6 +41,7 @@ pub fn run() {
                     image_ai_directory: platform::find_image_ai_models(
                         resource_directory.as_deref(),
                     ),
+                    tts: platform::find_tts(resource_directory.as_deref()),
                     ..EnginePaths::default()
                 },
             )?);
