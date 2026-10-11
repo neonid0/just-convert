@@ -1,8 +1,15 @@
 // Tauri's resource copier follows symlinks, which breaks the signature of the embedded
 // LibreOffice.app; engines are therefore copied in with ditto after the app is bundled.
 import { execFileSync } from "node:child_process";
-import { mkdtemp, readdir, readFile, rm, symlink } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rename,
+  rm,
+  symlink,
+} from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -132,24 +139,36 @@ const dmg = join(
   "dmg",
   `${config.productName}_${config.version}_${arch}.dmg`,
 );
-const stage = await mkdtemp(join(tmpdir(), "just-convert-dmg-"));
+// Moved, not copied: a second copy of the app can fill the Intel CI runner's disk.
+const stage = await mkdtemp(join(bundleDirectory, "dmg-stage-"));
+const stagedApp = join(stage, `${config.productName}.app`);
+await rename(app, stagedApp);
 try {
-  run("ditto", [app, join(stage, `${config.productName}.app`)]);
   await symlink("/Applications", join(stage, "Applications"));
-  run("mkdir", ["-p", dirname(dmg)]);
-  run("hdiutil", [
-    "create",
-    "-quiet",
-    "-volname",
-    config.productName,
-    "-srcfolder",
-    stage,
-    "-format",
-    "ULMO",
-    "-ov",
-    dmg,
-  ]);
+  await mkdir(dirname(dmg), { recursive: true });
+  // hdiutil intermittently fails with "Resource busy" on CI runners.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      run("hdiutil", [
+        "create",
+        "-volname",
+        config.productName,
+        "-srcfolder",
+        stage,
+        "-format",
+        "ULMO",
+        "-ov",
+        dmg,
+      ]);
+      break;
+    } catch (error) {
+      if (attempt === 3) throw error;
+      console.warn(`hdiutil create failed (attempt ${attempt}), retrying`);
+      await new Promise((done) => setTimeout(done, 10_000));
+    }
+  }
 } finally {
+  await rename(stagedApp, app);
   await rm(stage, { recursive: true, force: true });
 }
 if (identity) {
