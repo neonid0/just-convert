@@ -146,6 +146,46 @@ async function locate(base, relative, depth = 5) {
   return null;
 }
 
+// Prune and keep patterns may use `*` inside any path segment.
+async function expandGlob(base, pattern) {
+  let matches = [base];
+  for (const segment of pattern.split("/")) {
+    const next = [];
+    if (!segment.includes("*")) {
+      for (const match of matches) {
+        if (await exists(join(match, segment))) next.push(join(match, segment));
+      }
+    } else {
+      const regex = new RegExp(
+        `^${segment
+          .split("*")
+          .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*")}$`,
+      );
+      for (const match of matches) {
+        if (!(await stat(match)).isDirectory()) continue;
+        for (const child of await readdir(match)) {
+          if (regex.test(child)) next.push(join(match, child));
+        }
+      }
+    }
+    matches = next;
+  }
+  return matches;
+}
+
+async function prune(destination, file) {
+  const kept = new Set();
+  for (const pattern of file.keep ?? []) {
+    for (const path of await expandGlob(destination, pattern)) kept.add(path);
+  }
+  for (const pattern of file.prune ?? []) {
+    for (const path of await expandGlob(destination, pattern)) {
+      if (!kept.has(path)) await rm(path, { recursive: true, force: true });
+    }
+  }
+}
+
 async function install(source, destination) {
   if ((await stat(source)).isFile()) source = await realpath(source);
   await rm(destination, { recursive: true, force: true });
@@ -158,7 +198,11 @@ async function install(source, destination) {
 }
 
 async function fetchEntry(component, entry) {
-  const marker = join(markerDirectory, `${entry.sha256}.done`);
+  // Keyed on the whole entry so changing a prune list reinstalls the engine.
+  const entryHash = createHash("sha256")
+    .update(JSON.stringify(entry))
+    .digest("hex");
+  const marker = join(markerDirectory, `${entryHash}.done`);
   const outputs = entry.files.map((file) => resolve(projectRoot, file.to));
   if (
     (await exists(marker)) &&
@@ -200,9 +244,7 @@ async function fetchEntry(component, entry) {
         if (!source)
           throw new Error(`${component}: ${file.locate} not found in archive`);
         await install(source, resolve(projectRoot, file.to));
-        for (const unused of file.prune ?? []) {
-          await rm(resolve(projectRoot, file.to, unused), { force: true });
-        }
+        await prune(resolve(projectRoot, file.to), file);
       }
     } finally {
       await cleanup();

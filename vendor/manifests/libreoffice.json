@@ -94,10 +94,28 @@
       "files": [
         {
           "locate": "program/soffice.exe",
-          "to": "vendor/libreoffice"
+          "to": "vendor/libreoffice",
+          "prune": [
+            "help",
+            "readmes",
+            "program/resource",
+            "share/gallery",
+            "share/config/images_*",
+            "share/extensions/nlpsolver",
+            "share/extensions/wiki-publisher",
+            "share/extensions/dict-*/*.aff",
+            "share/extensions/dict-*/*.dic",
+            "share/extensions/dict-*/th_*",
+            "share/extensions/dict-*/thes_*"
+          ],
+          "keep": [
+            "share/config/images_colibre.zip",
+            "share/config/images_colibre_svg.zip",
+            "share/extensions/dict-*/hyph_*"
+          ]
         }
       ]
     }
   ],
-  "platformNotes": "Linux: optional Qt, KDE, GTK 4, and Java desktop-integration modules are pruned; headless conversion never loads them, and they would otherwise require desktop libraries the AppImage cannot resolve."
+  "platformNotes": "Linux: optional Qt, KDE, GTK 4, and Java desktop-integration modules are pruned; headless conversion never loads them, and they would otherwise require desktop libraries the AppImage cannot resolve. Windows: UI translations, help, gallery, spelling and thesaurus dictionaries, unused icon themes, and two unused extensions are pruned so the NSIS installer stays under its 2 GB limit; hyphenation patterns are kept because they affect layout."
 }
